@@ -8,5 +8,8 @@ public class Rectangle {
     { 
         this.h = h; 
     }
-    int area(){ return w*h; }
+    int area()
+    { 
+        return w*h; 
+    }
 }
