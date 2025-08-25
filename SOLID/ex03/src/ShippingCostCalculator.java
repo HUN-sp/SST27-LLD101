@@ -13,14 +13,12 @@ public class ShippingCostCalculator {
     }
 
     public double cost(Shipment shipment) {
-        // Look up the strategy for the shipment's type
         IShippingCostCalculator strategy = strategies.get(shipment.type);
 
         if (strategy == null) {
             throw new IllegalArgumentException("No strategy found for type: " + shipment.type);
         }
 
-        // Delegate the calculation to the found strategy object
         return strategy.cost(shipment);
     }
 }
