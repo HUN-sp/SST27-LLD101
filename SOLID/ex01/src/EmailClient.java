@@ -1,5 +1,6 @@
-public class EmailClient {
-    void send(String to, String body) {
-        System.out.println("[EMAIL to=" + to + "] " + body);
+public class EmailClient implements IEmailClient{
+    @Override
+    public void send(String a, String b) {
+        System.out.println("[EMAIL to=" + a + "] " + b);
     }
 }

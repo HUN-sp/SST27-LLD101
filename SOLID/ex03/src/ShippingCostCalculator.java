@@ -1,8 +1,26 @@
+import java.util.EnumMap;
+import java.util.Map;
+
 public class ShippingCostCalculator {
-    double cost(Shipment s){
-        if ("STANDARD".equals(s.type)) return 50 + 5*s.weightKg;
-        if ("EXPRESS".equals(s.type))  return 80 + 8*s.weightKg;
-        if ("OVERNIGHT".equals(s.type))return 120 + 10*s.weightKg;
-        throw new IllegalArgumentException("Unknown type: " + s.type);
+    private final Map<ShippingType, IShippingCostCalculator> strategies;
+
+    public ShippingCostCalculator() {
+        strategies = new EnumMap<>(ShippingType.class);
+
+        strategies.put(ShippingType.STANDARD, new StandardCostCalculator());
+        strategies.put(ShippingType.EXPRESS, new ExpressCostCalculator());
+        strategies.put(ShippingType.OVERNIGHT, new OvernightCostCalculator());
+    }
+
+    public double cost(Shipment shipment) {
+        // Look up the strategy for the shipment's type
+        IShippingCostCalculator strategy = strategies.get(shipment.type);
+
+        if (strategy == null) {
+            throw new IllegalArgumentException("No strategy found for type: " + shipment.type);
+        }
+
+        // Delegate the calculation to the found strategy object
+        return strategy.cost(shipment);
     }
 }
