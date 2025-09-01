@@ -1,50 +1,43 @@
 package com.example.orders;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-/**
- * Telescoping constructors + setters. Allows invalid states.
- */
 public class Order {
-    private String id;
-    private String customerEmail;
-    private final List<OrderLine> lines = new ArrayList<>();
-    private Integer discountPercent; // 0..100 expected, but not enforced
-    private boolean expedited;
-    private String notes;
+    private final String id;
+    private final String customerEmail;
+    private final List<OrderLine> lines;
+    private final DiscountPolicy discountPolicy;
+    private final boolean expedited;
+    private final String notes;
 
-    public Order(String id, String customerEmail) {
+    public Order(String id, String customerEmail, List<OrderLine> lines,
+                 DiscountPolicy discountPolicy, boolean expedited, String notes) {
+        if (id == null || id.isBlank()) throw new IllegalArgumentException("Order ID required");
+        if (!PricingRules.isValidEmail(customerEmail)) throw new IllegalArgumentException("Invalid email");
+
         this.id = id;
         this.customerEmail = customerEmail;
-    }
+        this.discountPolicy = discountPolicy != null ? discountPolicy : total -> total;
 
-    public Order(String id, String customerEmail, Integer discountPercent) {
-        this(id, customerEmail);
-        this.discountPercent = discountPercent;
+        // Defensive copy to avoid mutability leaks
+        this.lines = Collections.unmodifiableList(new ArrayList<>(lines));
+        this.expedited = expedited;
+        this.notes = notes;
     }
-
-    public void addLine(OrderLine line) { lines.add(line); }
-    public void setDiscountPercent(Integer discountPercent) { this.discountPercent = discountPercent; }
-    public void setExpedited(boolean expedited) { this.expedited = expedited; }
-    public void setNotes(String notes) { this.notes = notes; }
 
     public String getId() { return id; }
     public String getCustomerEmail() { return customerEmail; }
-    public List<OrderLine> getLines() { return lines; } // leaks internal list
-    public Integer getDiscountPercent() { return discountPercent; }
+    public List<OrderLine> getLines() { return lines; }
     public boolean isExpedited() { return expedited; }
     public String getNotes() { return notes; }
 
     public int totalBeforeDiscount() {
-        int sum = 0;
-        for (OrderLine l : lines) sum += l.getQuantity() * l.getUnitPriceCents();
-        return sum;
+        return lines.stream().mapToInt(OrderLine::totalPrice).sum();
     }
 
     public int totalAfterDiscount() {
-        int base = totalBeforeDiscount();
-        if (discountPercent == null) return base;
-        return base - (base * discountPercent / 100);
+        return discountPolicy.applyDiscount(totalBeforeDiscount());
     }
 }
