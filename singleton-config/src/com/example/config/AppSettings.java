@@ -30,3 +30,5 @@ public class AppSettings implements Serializable {
         return props.getProperty(key);
     }
 }
+
+
